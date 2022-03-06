@@ -19,7 +19,7 @@ let wantedlanguageCode: string;
 let isFiltering: boolean;
 let filterBtn: HTMLElement;
 
-chrome.storage.sync.get(null, (storage) => {
+chrome.storage.local.get(null, (storage) => {
   ({ wantedlanguageCode } = storage);
 
   // Triggering the observer
@@ -30,7 +30,6 @@ chrome.storage.sync.get(null, (storage) => {
 function startObserving() {
   new MutationObserver((mutationsList: MutationRecord[]) => {
     if (filterBtn) {
-      console.log(123);
       isFiltering = !!wantedlanguageCode && location.hash == "#filtering";
       filterBtn.childNodes[1].nodeValue =
         (isFiltering ? "Stop" : "Start") + " Filtering";
@@ -38,18 +37,19 @@ function startObserving() {
     }
 
     for (const mutation of mutationsList)
-      for (const el of mutation.addedNodes as unknown as HTMLElement[])
+      for (const el of mutation.addedNodes as unknown as HTMLElement[]) {
         if (el.ariaLabel?.toLowerCase() == "closed captions") addUIBadge(el);
-        else if (el.id == "filter-menu") addUIFilter(el);
+        else if (el.id == "filter-menu") setTimeout(() => addUIFilter(el), 500);
+      }
   }).observe(document.body, {
     childList: true,
     subtree: true,
   });
 }
 
-function addUIFilter(filterMenu: HTMLElement) {
+async function addUIFilter(el: HTMLElement) {
   // Wanted language choice
-  let subtitlesBtn = filterMenu.querySelector("ytd-toggle-button-renderer")!;
+  let subtitlesBtn = await waitForEl(el, "ytd-toggle-button-renderer");
   subtitlesBtn = subtitlesBtn.parentElement!.appendChild(
     subtitlesBtn.cloneNode()
   ) as HTMLElement;
@@ -65,7 +65,7 @@ function addUIFilter(filterMenu: HTMLElement) {
 
     // Set language
     rowEl.onclick = () =>
-      chrome.storage.sync.set({ wantedlanguageCode: languageCode }, reload);
+      chrome.storage.local.set({ wantedlanguageCode: languageCode }, reload);
   }
   subtitlesBtn.appendChild(listEl).className = "captions-list";
 
@@ -75,7 +75,7 @@ function addUIFilter(filterMenu: HTMLElement) {
   const clearEl = document.createElement("span");
   subtitlesBtn.parentElement!.appendChild(clearEl).innerHTML = "&nbsp;❌";
   clearEl.style.cursor = "pointer";
-  clearEl.onclick = () => chrome.storage.sync.clear(reload);
+  clearEl.onclick = () => chrome.storage.local.clear(reload);
 
   // Enable/Disable filtering
   filterBtn = subtitlesBtn.parentElement!.appendChild(

@@ -126,13 +126,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const parser = new DOMParser();
-const fetchDoc = (url) => __awaiter(void 0, void 0, void 0, function* () { return parser.parseFromString(yield (yield fetch(url)).text(), "text/html"); });
-const createImgEl = (path) => {
+const reload = () => location.reload();
+function createImgEl(path) {
     const img = document.createElement("img");
     img.src = chrome.runtime.getURL("img/" + path);
     return img;
-};
-const reload = () => location.reload();
+}
+function fetchDoc(url) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return parser.parseFromString(yield (yield fetch(url)).text(), "text/html");
+    });
+}
+function sleep(ms) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((res) => setTimeout(res, ms));
+    });
+}
+function waitForEl(parent, childSelector) {
+    return __awaiter(this, void 0, void 0, function* () {
+        while (true) {
+            const el = parent.querySelector(childSelector);
+            if (el)
+                return el;
+            yield sleep(100);
+        }
+    });
+}
 /* https://developers.google.com/youtube/v3/docs/captions/list */
 /// <reference path="./translation-languages.ts" />
 /// <reference path="./utils.ts" />
@@ -140,7 +159,7 @@ const targetScriptBeginning = "var ytInitialPlayerResponse = ";
 let wantedlanguageCode;
 let isFiltering;
 let filterBtn;
-chrome.storage.sync.get(null, (storage) => {
+chrome.storage.local.get(null, (storage) => {
     ({ wantedlanguageCode } = storage);
     // Triggering the observer
     if (/complete|interactive|loaded/.test(document.readyState))
@@ -152,7 +171,6 @@ function startObserving() {
     new MutationObserver((mutationsList) => {
         var _a;
         if (filterBtn) {
-            console.log(123);
             isFiltering = !!wantedlanguageCode && location.hash == "#filtering";
             filterBtn.childNodes[1].nodeValue =
                 (isFiltering ? "Stop" : "Start") + " Filtering";
@@ -160,51 +178,54 @@ function startObserving() {
                 clearUIBadges();
         }
         for (const mutation of mutationsList)
-            for (const el of mutation.addedNodes)
+            for (const el of mutation.addedNodes) {
                 if (((_a = el.ariaLabel) === null || _a === void 0 ? void 0 : _a.toLowerCase()) == "closed captions")
                     addUIBadge(el);
                 else if (el.id == "filter-menu")
-                    addUIFilter(el);
+                    setTimeout(() => addUIFilter(el), 500);
+            }
     }).observe(document.body, {
         childList: true,
         subtree: true,
     });
 }
-function addUIFilter(filterMenu) {
-    // Wanted language choice
-    let subtitlesBtn = filterMenu.querySelector("ytd-toggle-button-renderer");
-    subtitlesBtn = subtitlesBtn.parentElement.appendChild(subtitlesBtn.cloneNode());
-    subtitlesBtn.classList.add("subtitles-btn");
-    subtitlesBtn.textContent = "Subtitles";
-    subtitlesBtn.prepend(createImgEl("language.svg"));
-    const listEl = document.createElement("div");
-    for (const { languageCode, languageName } of translationLanguages) {
-        const rowEl = document.createElement("a");
-        const langCodeEl = document.createElement("span");
-        listEl.appendChild(rowEl).textContent = languageName.simpleText;
-        rowEl.appendChild(langCodeEl).textContent = languageCode;
-        // Set language
-        rowEl.onclick = () => chrome.storage.sync.set({ wantedlanguageCode: languageCode }, reload);
-    }
-    subtitlesBtn.appendChild(listEl).className = "captions-list";
-    // Clear language
-    if (!wantedlanguageCode)
-        return;
-    subtitlesBtn.childNodes[1].nodeValue += ": " + wantedlanguageCode;
-    const clearEl = document.createElement("span");
-    subtitlesBtn.parentElement.appendChild(clearEl).innerHTML = "&nbsp;❌";
-    clearEl.style.cursor = "pointer";
-    clearEl.onclick = () => chrome.storage.sync.clear(reload);
-    // Enable/Disable filtering
-    filterBtn = subtitlesBtn.parentElement.appendChild(subtitlesBtn.cloneNode());
-    filterBtn.append(createImgEl("filter.svg"), document.createTextNode(""));
-    filterBtn.style.cursor = "pointer";
-    filterBtn.onclick = () => {
-        let newLocation = location.href.replace(/&.*/, "");
-        if (!isFiltering)
-            newLocation += "&sp=EgIoAQ%253D%253D#filtering";
-        location.href = newLocation;
-    };
+function addUIFilter(el) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Wanted language choice
+        let subtitlesBtn = yield waitForEl(el, "ytd-toggle-button-renderer");
+        subtitlesBtn = subtitlesBtn.parentElement.appendChild(subtitlesBtn.cloneNode());
+        subtitlesBtn.classList.add("subtitles-btn");
+        subtitlesBtn.textContent = "Subtitles";
+        subtitlesBtn.prepend(createImgEl("language.svg"));
+        const listEl = document.createElement("div");
+        for (const { languageCode, languageName } of translationLanguages) {
+            const rowEl = document.createElement("a");
+            const langCodeEl = document.createElement("span");
+            listEl.appendChild(rowEl).textContent = languageName.simpleText;
+            rowEl.appendChild(langCodeEl).textContent = languageCode;
+            // Set language
+            rowEl.onclick = () => chrome.storage.local.set({ wantedlanguageCode: languageCode }, reload);
+        }
+        subtitlesBtn.appendChild(listEl).className = "captions-list";
+        // Clear language
+        if (!wantedlanguageCode)
+            return;
+        subtitlesBtn.childNodes[1].nodeValue += ": " + wantedlanguageCode;
+        const clearEl = document.createElement("span");
+        subtitlesBtn.parentElement.appendChild(clearEl).innerHTML = "&nbsp;❌";
+        clearEl.style.cursor = "pointer";
+        clearEl.onclick = () => chrome.storage.local.clear(reload);
+        // Enable/Disable filtering
+        filterBtn = subtitlesBtn.parentElement.appendChild(subtitlesBtn.cloneNode());
+        filterBtn.append(createImgEl("filter.svg"), document.createTextNode(""));
+        filterBtn.style.cursor = "pointer";
+        filterBtn.onclick = () => {
+            let newLocation = location.href.replace(/&.*/, "");
+            if (!isFiltering)
+                newLocation += "&sp=EgIoAQ%253D%253D#filtering";
+            location.href = newLocation;
+        };
+    });
 }
 function addUIBadge(badge) {
     return __awaiter(this, void 0, void 0, function* () {

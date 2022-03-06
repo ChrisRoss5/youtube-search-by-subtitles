@@ -1,8 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Youtube Search by Subtitles/CC in a specified language",
+  "name": "Youtube Search by Subtitles/CC",
   "version": "1.0",
   "description": "Search for videos on Youtube by Subtitles/CC in a specified language.",
+  "icons": {
+    "128": "img/CC-icon-128.png"
+  },
+  "author": "Kristijan Rosandić",
   "permissions": [
     "storage"
   ],
