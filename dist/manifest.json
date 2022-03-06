@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Youtube Search by Subtitles/CC in a specified language",
+  "version": "1.0",
+  "description": "Search for videos on Youtube by Subtitles/CC in a specified language.",
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.youtube.com/*"
+      ],
+      "js": [
+        "content-script.js"
+      ],
+      "css": [
+        "style.css"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "*.svg"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}
