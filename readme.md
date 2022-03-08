@@ -5,7 +5,9 @@ Search for videos on Youtube by Subtitles/CC in a specified language.
 ## How to use
 
 Step 1: Search anything on Youtube
+
 Step 2: Select subtitles language (next to the filter button)
+
 Step 3: Click "Start filtering"
 
 Note:
