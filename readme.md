@@ -1,6 +1,6 @@
-# Youtube Search by Subtitles/CC
+# Search by Subtitles/CC for Youtube™
 
-Search for videos on Youtube by Subtitles/CC in a specified language.
+Search for videos on Youtube™ by Subtitles/CC in a specified language.
 
 ## How to use
 

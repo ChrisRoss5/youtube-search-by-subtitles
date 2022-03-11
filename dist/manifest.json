@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Youtube Search by Subtitles/CC",
+  "name": "Search by Subtitles/CC for Youtube™",
   "version": "1.0",
-  "description": "Search for videos on Youtube by Subtitles/CC in a specified language.",
+  "description": "Search for videos on Youtube™ by Subtitles/CC in a specified language.",
   "icons": {
     "128": "img/CC-icon-128.png"
   },
