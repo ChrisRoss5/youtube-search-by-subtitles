@@ -39,7 +39,7 @@ function startObserving() {
     for (const mutation of mutationsList)
       for (const el of mutation.addedNodes as unknown as HTMLElement[]) {
         if (el.ariaLabel?.toLowerCase() == "closed captions") addUIBadge(el);
-        else if (el.id == "filter-menu") setTimeout(() => addUIFilter(el), 500);
+        else if (el.id == "primary") setTimeout(() => addUIFilter(el), 500);
       }
   }).observe(document.body, {
     childList: true,
@@ -68,6 +68,8 @@ async function addUIFilter(el: HTMLElement) {
       chrome.storage.local.set({ wantedlanguageCode: languageCode }, reload);
   }
   subtitlesBtn.appendChild(listEl).className = "captions-list";
+  const container = subtitlesBtn.closest("#container") as HTMLElement;
+  if (container) container.style.display = "inline-block";
 
   // Clear language
   if (!wantedlanguageCode) return;
@@ -101,6 +103,7 @@ async function addUIBadge(badge: HTMLElement) {
   // Listing CC languages
   const listEl = document.createElement("div");
   const captionTracks = await getCaptionTracks(url);
+
   for (const caption of captionTracks) {
     const rowEl = document.createElement("a");
     rowEl.target = "_blank";

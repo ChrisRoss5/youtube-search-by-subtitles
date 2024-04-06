@@ -181,7 +181,7 @@ function startObserving() {
             for (const el of mutation.addedNodes) {
                 if (((_a = el.ariaLabel) === null || _a === void 0 ? void 0 : _a.toLowerCase()) == "closed captions")
                     addUIBadge(el);
-                else if (el.id == "filter-menu")
+                else if (el.id == "primary")
                     setTimeout(() => addUIFilter(el), 500);
             }
     }).observe(document.body, {
@@ -207,6 +207,9 @@ function addUIFilter(el) {
             rowEl.onclick = () => chrome.storage.local.set({ wantedlanguageCode: languageCode }, reload);
         }
         subtitlesBtn.appendChild(listEl).className = "captions-list";
+        const container = subtitlesBtn.closest("#container");
+        if (container)
+            container.style.display = "inline-block";
         // Clear language
         if (!wantedlanguageCode)
             return;
